@@ -4,14 +4,19 @@ import (
 	"sync"
 )
 
+type indexF struct {
+	data map[interface{}]interface{}
+	f    func(v interface{}) bool
+}
+
 type relation struct {
 	mu   sync.RWMutex
-	data map[string]map[interface{}]interface{}
+	data map[string]indexF
 }
 
 // init 初始化
 func (r *relation) New() {
-	r.data = make(map[string]map[interface{}]interface{})
+	r.data = make(map[string]indexF)
 }
 
 // GetIndex get index
@@ -20,7 +25,7 @@ func (r *relation) GetIndex(indexName string) (map[interface{}]interface{}, bool
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	return r.data[indexName], r.data[indexName] != nil
+	return r.data[indexName].data, r.data[indexName].data != nil
 }
 
 // Range calls f sequentially for each key and value present in the map.
@@ -60,9 +65,9 @@ func (r *relation) DeleteKey(key interface{}) {
 	defer r.mu.Unlock()
 
 	for _, indexData := range r.data {
-		for newk := range indexData {
+		for newk := range indexData.data {
 			if newk == key {
-				delete(indexData, newk)
+				delete(indexData.data, newk)
 				break
 			}
 		}
@@ -76,11 +81,17 @@ func (r *relation) StoneKey(key, value interface{}) {
 	defer r.mu.Unlock()
 
 	for _, indexData := range r.data {
-		for dataKey := range indexData {
+		var isFind = false
+		for dataKey := range indexData.data {
 			if dataKey == key {
-				indexData[dataKey] = value
+				indexData.data[dataKey] = value
 				break
 			}
 		}
+
+		if isFind == false && indexData.f(value) == true {
+			indexData.data[key] = value
+		}
+
 	}
 }

@@ -123,3 +123,29 @@ func TestMainIndex(t *testing.T) {
 	fuckingPrimarySchool.Store("SixthGrade", &sixthGrade)
 
 }
+
+func TestStoreIndex(t *testing.T) {
+
+	sixthGrade.Store("hanmeimei", hanmeimei)
+	sixthGrade.Store("lilei", lilei)
+
+	// 学校男生有那些
+	fuckingPrimarySchool.Store("FifthGrade", &fifthGrade)
+	fuckingPrimarySchool.Store("SixthGrade", &sixthGrade)
+	fuckingPrimarySchool.CreateIndex("SchoolBoys", func(v interface{}) bool {
+		if v.(student).sex == 1 {
+			return true
+		}
+		return false
+	})
+
+	fifthGrade.Store("xiaoming", xiaoming) //创建索引后加入小时，看索引是否加入
+	schoolBoys, ok := fuckingPrimarySchool.Index.GetIndex("SchoolBoys")
+	if ok == false {
+		t.Error("获取全校男生索引失败")
+	}
+	if len(schoolBoys) != 2 {
+		t.Error("索引拿出来的学校男生数量不对")
+	}
+
+}

@@ -11,11 +11,32 @@ import (
 	"remap"
 )
 
+type student struct {
+	name  string // 姓名
+	sex   int8   // 性别 1男 2女
+	age   int8   // 年龄
+	score int8   // 分数
+}
+
 func main() {
 
+	var hanmeimei = student{
+		name:  "韩梅梅",
+		sex:   2,
+		age:   10,
+		score: 90,
+	}
+
+	var lilei = student{
+		name:  "李雷",
+		sex:   1,
+		age:   10,
+		score: 80,
+	}
+
 	var m remap.Map
-	m.Store("test", "test") // 修改操作
-	d, _ := m.Load("test")  // 读取
+	m.Store("test", hanmeimei) // 修改操作
+	d, _ := m.Load("test")     // 读取
 	log.Println(d)
 
 	m.Delete("test")      //删除
@@ -23,13 +44,10 @@ func main() {
 	log.Println(d)
 
 	// 创建索引
-	m.Store("test1", "test") // 修改操作
-	m.Store("test2", "test") // 修改操作
-	m.Store("test3", "test") // 修改操作
-	m.Store("test4", "test") // 修改操作
-	m.Store("test5", "test") // 修改操作
+	m.Store("hanmeimei", hanmeimei) // 修改操作
+	m.Store("lilei", lilei)         // 修改操作
 	m.CreateIndex("索引名", func(v interface{}) bool {
-		if v.(string) == "test" {
+		if v.(student).sex == 1 {
 			return true
 		}
 		return false

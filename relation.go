@@ -6,7 +6,7 @@ import (
 
 type indexF struct {
 	data map[interface{}]interface{}
-	f    func(v interface{}) bool
+	f    func(k, v interface{}) interface{}
 }
 
 type relation struct {
@@ -58,18 +58,17 @@ func (r *relation) DeleteIndex(indexName string) {
 	delete(r.data, indexName)
 }
 
-// DeleteKey delete index key
-// 删除索引内容
-func (r *relation) DeleteKey(key interface{}) {
+// delete
+// 删除原数据，需要处理删除索引内容
+func (r *relation) delete(k, v interface{}) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	for _, indexData := range r.data {
-		for newk := range indexData.data {
-			if newk == key {
-				delete(indexData.data, newk)
-				break
-			}
+		indexKey := indexData.f(k, v)
+		if indexKey != nil {
+			delete(indexData.data, indexKey)
+			break
 		}
 	}
 }
@@ -89,7 +88,7 @@ func (r *relation) StoneKey(key, value interface{}) {
 			}
 		}
 
-		if isFind == false && indexData.f(value) == true {
+		if isFind == false && indexData.f(key, value) != nil {
 			indexData.data[key] = value
 		}
 

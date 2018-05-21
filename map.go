@@ -100,12 +100,17 @@ func (m *Map) Delete(key interface{}) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	delete(m.data, key)
-
-	m.Index.DeleteKey(key)
-	if m.parent != nil {
-		m.parent.Index.DeleteKey(key)
+	if m.data[key] == nil {
+		return
 	}
+
+	// 处理索引数据
+	m.Index.delete(key, m.data[key])
+	if m.parent != nil {
+		m.parent.Index.delete(key, m.data[key])
+	}
+
+	delete(m.data, key)
 
 }
 

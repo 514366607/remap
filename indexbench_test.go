@@ -14,11 +14,11 @@ func Benchmark_CreteIndex(b *testing.B) {
 	m.Store("test3", "test")
 	m.Store("test4", "test")
 	for i := 0; i < b.N; i++ { //use b.N for looping
-		m.CreateIndex(fmt.Sprintf("test%d", i), func(v interface{}) bool {
+		m.CreateIndex(fmt.Sprintf("test%d", i), func(k, v interface{}) interface{} {
 			if v == "test" {
-				return true
+				return k
 			}
-			return false
+			return nil
 		})
 	}
 }
@@ -31,11 +31,11 @@ func Benchmark_MultiIndexGet(b *testing.B) {
 	m2.Store("test3", "test")
 	m2.Store("test4", "test")
 	m.Store(1, &m2)
-	m.CreateIndex("test", func(v interface{}) bool {
+	m.CreateIndex("test", func(k, v interface{}) interface{} {
 		if v == "test" {
-			return true
+			return k
 		}
-		return false
+		return v
 	})
 	for i := 0; i < b.N; i++ { //use b.N for looping
 		m.Index.GetIndex("test")
@@ -49,11 +49,11 @@ func Benchmark_DeleteIndex(b *testing.B) {
 	m2.Store("test3", "test")
 	m2.Store("test4", "test")
 	m.Store(1, &m2)
-	m.CreateIndex("test", func(v interface{}) bool {
+	m.CreateIndex("test", func(k, v interface{}) interface{} {
 		if v == "test" {
-			return true
+			return k
 		}
-		return false
+		return nil
 	})
 	for i := 0; i < b.N; i++ { //use b.N for looping
 		m2.Delete("test4")
@@ -68,11 +68,11 @@ func Benchmark_MultiIndexDelete(b *testing.B) {
 	m2.Store("test3", "test")
 	m2.Store("test4", "test")
 	m.Store(1, &m2)
-	m.CreateIndex("test", func(v interface{}) bool {
+	m.CreateIndex("test", func(k, v interface{}) interface{} {
 		if v == "test" {
-			return true
+			return k
 		}
-		return false
+		return nil
 	})
 	m2.Delete("test4")
 	for i := 0; i < b.N; i++ { //use b.N for looping
@@ -91,11 +91,11 @@ func Benchmark_IndexRange(b *testing.B) {
 	m2.Store("test3", "test")
 	m2.Store("test4", "test")
 	m.Store(1, &m2)
-	m.CreateIndex("test", func(v interface{}) bool {
+	m.CreateIndex("test", func(k, v interface{}) interface{} {
 		if v == "test" {
-			return true
+			return k
 		}
-		return false
+		return nil
 	})
 	m2.Delete("test4")
 	for i := 0; i < b.N; i++ { //use b.N for looping

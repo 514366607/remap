@@ -2,7 +2,9 @@ package remap
 
 // CreateIndex create index
 // 创建索引
-func (m *Map) CreateIndex(indexName string, f func(v interface{}) bool) map[interface{}]interface{} {
+// indexName 索引名
+// f( v 值 ) 返回需要做key的值，返回索引内容
+func (m *Map) CreateIndex(indexName string, f func(k, v interface{}) interface{}) map[interface{}]interface{} {
 
 	index := make(map[interface{}]interface{})
 
@@ -17,9 +19,9 @@ func (m *Map) CreateIndex(indexName string, f func(v interface{}) bool) map[inte
 			return true
 		}
 
-		flag := f(v)
-		if flag == true {
-			index[key] = v
+		thisKey := f(key, v)
+		if thisKey != nil {
+			index[thisKey] = v
 		}
 		return true
 	})

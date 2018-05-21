@@ -37,6 +37,9 @@ var xiaoming = student{
 }
 
 func TestMap(t *testing.T) {
+	sixthGrade = Map{}
+	fifthGrade = Map{}
+	fuckingPrimarySchool = Map{}
 
 	sixthGrade.Store("hanmeimei", hanmeimei)
 

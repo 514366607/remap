@@ -5,15 +5,19 @@ import (
 )
 
 func TestIndex(t *testing.T) {
+	sixthGrade = Map{}
+	fifthGrade = Map{}
+	fuckingPrimarySchool = Map{}
+
 	sixthGrade.Store("hanmeimei", &hanmeimei)
 	sixthGrade.Store("lilei", &lilei)
 
 	// 班级男生有那些
-	sixthGrade.CreateIndex("GradeBoys", func(v interface{}) bool {
+	sixthGrade.CreateIndex("GradeBoys", func(k, v interface{}) interface{} {
 		if v.(*student).sex == 1 {
-			return true
+			return k
 		}
-		return false
+		return nil
 	})
 
 	gradeBoys, ok := sixthGrade.Index.GetIndex("GradeBoys")
@@ -35,10 +39,14 @@ func TestIndex(t *testing.T) {
 	if gradeBoys["lilei"].(*student).age != 1 || gradeBoys["lilei"].(*student).score != 100 {
 		t.Error("李雷克隆人没有顶替成功")
 	}
+
 }
 
 // TestMainIndexByPt 传入指针测试
 func TestMainIndexByPt(t *testing.T) {
+	sixthGrade = Map{}
+	fifthGrade = Map{}
+	fuckingPrimarySchool = Map{}
 
 	sixthGrade.Store("hanmeimei", &hanmeimei)
 	sixthGrade.Store("lilei", &lilei)
@@ -48,11 +56,11 @@ func TestMainIndexByPt(t *testing.T) {
 	// 学校男生有那些
 	fuckingPrimarySchool.Store("FifthGrade", &fifthGrade)
 	fuckingPrimarySchool.Store("SixthGrade", &sixthGrade)
-	fuckingPrimarySchool.CreateIndex("SchoolBoys", func(v interface{}) bool {
+	fuckingPrimarySchool.CreateIndex("SchoolBoys", func(k, v interface{}) interface{} {
 		if v.(*student).sex == 1 {
-			return true
+			return k
 		}
-		return false
+		return nil
 	})
 	schoolBoys, ok := fuckingPrimarySchool.Index.GetIndex("SchoolBoys")
 	if ok == false {
@@ -75,12 +83,15 @@ func TestMainIndexByPt(t *testing.T) {
 		t.Error("李雷过了生日应该大一岁了")
 	}
 
+	// 再次删除下看下会不会报错
 	sixthGrade.Delete("xiaoming") // 小明退学了
-	fuckingPrimarySchool.Store("SixthGrade", &sixthGrade)
 
 }
 
 func TestMainIndex(t *testing.T) {
+	sixthGrade = Map{}
+	fifthGrade = Map{}
+	fuckingPrimarySchool = Map{}
 
 	sixthGrade.Store("hanmeimei", hanmeimei)
 	sixthGrade.Store("lilei", lilei)
@@ -90,11 +101,11 @@ func TestMainIndex(t *testing.T) {
 	// 学校男生有那些
 	fuckingPrimarySchool.Store("FifthGrade", &fifthGrade)
 	fuckingPrimarySchool.Store("SixthGrade", &sixthGrade)
-	fuckingPrimarySchool.CreateIndex("SchoolBoys", func(v interface{}) bool {
+	fuckingPrimarySchool.CreateIndex("SchoolBoys", func(k, v interface{}) interface{} {
 		if v.(student).sex == 1 {
-			return true
+			return k
 		}
-		return false
+		return nil
 	})
 	schoolBoys, ok := fuckingPrimarySchool.Index.GetIndex("SchoolBoys")
 	if ok == false {
@@ -113,18 +124,21 @@ func TestMainIndex(t *testing.T) {
 		t.Error("第二次获取全校男生索引失败")
 	}
 	if len(schoolBoys) != 1 {
-		t.Error("小明已经给退学了，索引没有更新到")
+		t.Error("小明已经给退学了，索引没有更新到", schoolBoys)
 	}
 	if schoolBoys["lilei"].(student).age != 11 {
 		t.Error("李雷过了生日应该大一岁了")
 	}
 
+	// 再次删除下看下会不会报错
 	sixthGrade.Delete("xiaoming") // 小明退学了
-	fuckingPrimarySchool.Store("SixthGrade", &sixthGrade)
 
 }
 
 func TestStoreIndex(t *testing.T) {
+	sixthGrade = Map{}
+	fifthGrade = Map{}
+	fuckingPrimarySchool = Map{}
 
 	sixthGrade.Store("hanmeimei", hanmeimei)
 	sixthGrade.Store("lilei", lilei)
@@ -132,11 +146,11 @@ func TestStoreIndex(t *testing.T) {
 	// 学校男生有那些
 	fuckingPrimarySchool.Store("FifthGrade", &fifthGrade)
 	fuckingPrimarySchool.Store("SixthGrade", &sixthGrade)
-	fuckingPrimarySchool.CreateIndex("SchoolBoys", func(v interface{}) bool {
+	fuckingPrimarySchool.CreateIndex("SchoolBoys", func(k, v interface{}) interface{} {
 		if v.(student).sex == 1 {
-			return true
+			return k
 		}
-		return false
+		return nil
 	})
 
 	fifthGrade.Store("xiaoming", xiaoming) //创建索引后加入小时，看索引是否加入

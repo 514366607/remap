@@ -136,3 +136,12 @@ func (m *Map) Range(f func(key, value interface{}) bool) {
 		}
 	}
 }
+
+// Len MapLen
+func (m *Map) Len() int {
+	m.tryMake()
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return len(m.data)
+}

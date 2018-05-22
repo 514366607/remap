@@ -29,8 +29,8 @@ func (m *Map) CreateIndex(indexName string, f func(k, v interface{}) interface{}
 	if len(index) > 0 {
 		m.Index.mu.Lock()
 		defer m.Index.mu.Unlock()
-		var indexF = indexF{f: f, data: index}
-		m.Index.data[indexName] = indexF
+		indexF := indexF{f: f, data: index}
+		m.Index.data[indexName] = &indexF
 		return m.Index.data[indexName].data
 	}
 	return nil

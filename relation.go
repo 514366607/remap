@@ -5,18 +5,19 @@ import (
 )
 
 type indexF struct {
+	mu   sync.RWMutex
 	data map[interface{}]interface{}
 	f    func(k, v interface{}) interface{}
 }
 
 type relation struct {
 	mu   sync.RWMutex
-	data map[string]indexF
+	data map[string]*indexF
 }
 
 // init 初始化
 func (r *relation) New() {
-	r.data = make(map[string]indexF)
+	r.data = make(map[string]*indexF)
 }
 
 // GetIndex get index
@@ -61,36 +62,29 @@ func (r *relation) DeleteIndex(indexName string) {
 // delete
 // 删除原数据，需要处理删除索引内容
 func (r *relation) delete(k, v interface{}) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	for _, indexData := range r.data {
+		indexData.mu.Lock()
 		indexKey := indexData.f(k, v)
 		if indexKey != nil {
 			delete(indexData.data, indexKey)
-			break
 		}
+		indexData.mu.Unlock()
 	}
 }
 
 // StoneKey set index by key of value
 // 设置索引的值
-func (r *relation) StoneKey(key, value interface{}) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (r *relation) StoneKey(k, v interface{}) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 
 	for _, indexData := range r.data {
-		var isFind = false
-		for dataKey := range indexData.data {
-			if dataKey == key {
-				indexData.data[dataKey] = value
-				break
-			}
+		indexData.mu.Lock()
+		if indexData.f(k, v) != nil {
+			indexData.data[k] = v
 		}
-
-		if isFind == false && indexData.f(key, value) != nil {
-			indexData.data[key] = value
-		}
-
+		indexData.mu.Unlock()
 	}
 }

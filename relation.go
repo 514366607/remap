@@ -26,7 +26,11 @@ func (r *relation) GetIndex(indexName string) (map[interface{}]interface{}, bool
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	return r.data[indexName].data, r.data[indexName].data != nil
+	returnData, ok := r.data[indexName]
+	if ok == false {
+		return nil, false
+	}
+	return returnData.data, true
 }
 
 // Range calls f sequentially for each key and value present in the map.

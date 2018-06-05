@@ -41,38 +41,27 @@ func main() {
 	m.Store("test", hanmeimei) // 修改操作
 	d, _ := m.Load("test")     // 读取
 	log.Println(1, d)
-	//  print	2018/05/21 15:30:59 1 {1111 韩梅梅 2 10 90}
+	// 1 {1111 韩梅梅 2 10 90}
 
 	m.Delete("test")      //删除
 	d, _ = m.Load("test") // 读取
 	log.Println(2, d)
-	//  print	2018/05/21 15:30:59 2 <nil>
+	// <nil>
 
 	// 创建索引
 	m.Store("hanmeimei", hanmeimei) // 修改操作
 	m.Store("lilei", lilei)         // 修改操作
-	m.CreateIndex("boys", func(k, v interface{}) interface{} {
+	m.CreateIndex("boys", func(k, v interface{}) bool {
 		if v.(student).sex == 1 {
-			return v.(student).name
+			return true
 		}
-		return nil
+		return false
 	})
 	i, _ := m.Index.GetIndex("boys") // 取出索引内容
 	log.Println(3, i)
-	//  print	2018/05/21 15:30:59 3 map[李雷:{1112 李雷 1 10 80}]
+	// 3 &{{true} <nil> {{0 0} 0 0 0 0} {{{0 0} 0 0 0 0} map[]} map[lilei:{1112 李雷 1 10 80}]}
 
 	m.Index.DeleteIndex("boys") // 删除索引
-
-	// 以学员号创建索引
-	m.Delete("lilei") // 李雷退学了
-	m.CreateIndex("StudentId", func(k, v interface{}) interface{} {
-		return v.(student).studentID
-	})
-	i, _ = m.Index.GetIndex("StudentId") // 取出索引内容
-	log.Println(4, i)
-	// print	2018/05/21 15:30:59 4 map[1111:{1111 韩梅梅 2 10 90}]
-
-	m.Index.DeleteIndex("StudentId") // 删除索引
 }
 
 ```

@@ -5,9 +5,8 @@ import (
 )
 
 type indexF struct {
-	mu   sync.RWMutex
-	data map[interface{}]interface{}
-	f    func(k, v interface{}) interface{}
+	data *Map
+	f    func(k, v interface{}) bool
 }
 
 type relation struct {
@@ -22,7 +21,7 @@ func (r *relation) New() {
 
 // GetIndex get index
 // 创建索引
-func (r *relation) GetIndex(indexName string) (map[interface{}]interface{}, bool) {
+func (r *relation) GetIndex(indexName string) (*Map, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -69,12 +68,7 @@ func (r *relation) delete(k, v interface{}) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	for _, indexData := range r.data {
-		indexData.mu.Lock()
-		indexKey := indexData.f(k, v)
-		if indexKey != nil {
-			delete(indexData.data, indexKey)
-		}
-		indexData.mu.Unlock()
+		indexData.data.Delete(k)
 	}
 }
 
@@ -85,10 +79,11 @@ func (r *relation) StoneKey(k, v interface{}) {
 	defer r.mu.RUnlock()
 
 	for _, indexData := range r.data {
-		indexData.mu.Lock()
-		if indexData.f(k, v) != nil {
-			indexData.data[k] = v
+		if indexData.f(k, v) == true {
+			indexData.data.Store(k, v)
+		} else {
+			// 删除旧的索引
+			indexData.data.Delete(k)
 		}
-		indexData.mu.Unlock()
 	}
 }

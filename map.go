@@ -4,7 +4,6 @@
 package remap
 
 import (
-	"fmt"
 	"sync"
 	"sync/atomic"
 )
@@ -53,27 +52,19 @@ func (m *Map) Store(key, value interface{}) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	// 判断下内存地址是不是一样的，一样就不需要处理索引
-	var isSame = false
-	if fmt.Sprintf("%x", value) == fmt.Sprintf("%x", m.data[key]) {
-		isSame = true
-	}
-
 	d, ok := value.(*Map)
 	if ok == true {
 		d.parent = m
 	}
-	m.data[key] = value
 
-	if isSame == false {
-		// 修改索引里的值
-		m.Index.StoneKey(key, value)
-		if m.parent != nil {
-			// 父级的索引也要处理下
-			m.parent.Index.StoneKey(key, value)
-		}
+	// 修改索引里的值
+	m.Index.StoneKey(key, value)
+	if m.parent != nil {
+		// 父级的索引也要处理下
+		m.parent.Index.StoneKey(key, value)
 	}
 
+	m.data[key] = value
 }
 
 // LoadOrStore returns the existing value for the key if present.

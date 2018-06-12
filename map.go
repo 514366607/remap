@@ -120,19 +120,19 @@ func (m *Map) Range(f func(key, value interface{}) bool) {
 
 	m.mu.RLock()
 	copyMap := m.data
-	m.mu.RUnlock()
 	for k, v := range copyMap {
 		if f(k, v) == false {
 			break
 		}
 	}
+	m.mu.RUnlock()
 }
 
 // Len MapLen
 func (m *Map) Len() int {
 	m.tryMake()
 
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	return len(m.data)
 }

@@ -95,4 +95,15 @@ func TestMap(t *testing.T) {
 	if len(grils) != 1 {
 		t.Error("应该只有一个女的")
 	}
+
+	var boys = make([]string, 0)
+	sixthGrade.Range(func(key, value interface{}) bool {
+		if value.(student).sex == 1 {
+			boys = append(boys, key.(string))
+		}
+		return true
+	})
+	if len(boys) != 2 {
+		t.Error("应该只有两个男的")
+	}
 }

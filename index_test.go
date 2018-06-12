@@ -139,6 +139,9 @@ func TestMainIndex(t *testing.T) {
 		t.Error("李雷过了生日应该大一岁了")
 	}
 
+	lilei.age = 10                   // 恢复李雷年龄
+	sixthGrade.Store("lilei", lilei) // 不是指针要重新store下才行
+
 	// 再次删除下看下会不会报错
 	sixthGrade.Delete("xiaoming") // 小明退学了
 

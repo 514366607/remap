@@ -120,11 +120,12 @@ func (m *Map) Range(f func(key, value interface{}) bool) {
 
 	m.mu.RLock()
 	for k, v := range m.data {
-		defer m.mu.RLock()
 		m.mu.RUnlock()
 		if f(k, v) == false {
+			m.mu.RLock()
 			break
 		}
+		m.mu.RLock()
 	}
 	m.mu.RUnlock()
 }

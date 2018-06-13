@@ -121,9 +121,11 @@ func (m *Map) Range(f func(key, value interface{}) bool) {
 	m.mu.RLock()
 	copyMap := m.data
 	for k, v := range copyMap {
+		m.mu.RUnlock()
 		if f(k, v) == false {
 			break
 		}
+		m.mu.RLock()
 	}
 	m.mu.RUnlock()
 }

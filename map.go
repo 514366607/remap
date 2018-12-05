@@ -4,22 +4,31 @@
 package remap
 
 import (
+	"runtime"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 // Map map空结构
 type Map struct {
-	isMake atomic.Value
-	parent *Map
-	mu     sync.RWMutex
-	Index  relation
-	data   map[interface{}]interface{}
+	isMake         atomic.Value
+	parent         *Map
+	mu             sync.RWMutex
+	Index          relation
+	data           map[interface{}]interface{}
+	itemExpiration time.Duration
+	janitor        *janitor
+	itemTime       *itemTime
 }
 
 // New 初始化
 func (m *Map) New() {
 	m.data = make(map[interface{}]interface{})
+
+	m.itemTime = &itemTime{}
+	m.itemTime.new()
+
 	m.Index.New()
 }
 
@@ -39,6 +48,12 @@ func (m *Map) tryMake() {
 // The ok result indicates whether value was found in the map.
 func (m *Map) Load(key interface{}) (value interface{}, ok bool) {
 	m.tryMake()
+
+	if m.itemExpiration > 0 {
+		if m.itemTime.check(key) == false {
+			return nil, false
+		}
+	}
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -65,6 +80,12 @@ func (m *Map) Store(key, value interface{}) {
 	}
 
 	m.data[key] = value
+
+	if m.itemExpiration > 0 {
+		m.itemTime.update(key, m.itemExpiration)
+	}
+
+	return
 }
 
 // LoadOrStore returns the existing value for the key if present.
@@ -103,6 +124,11 @@ func (m *Map) Delete(key interface{}) {
 
 	delete(m.data, key)
 
+	if m.itemExpiration > 0 {
+		m.itemTime.del(key)
+	}
+
+	return
 }
 
 // Range calls f sequentially for each key and value present in the map.
@@ -120,6 +146,13 @@ func (m *Map) Range(f func(key, value interface{}) bool) {
 
 	m.mu.RLock()
 	for k, v := range m.data {
+
+		if m.itemExpiration > 0 {
+			if m.itemTime.check(k) == false {
+				continue
+			}
+		}
+
 		m.mu.RUnlock()
 		if f(k, v) == false {
 			m.mu.RLock()
@@ -136,5 +169,28 @@ func (m *Map) Len() int {
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
+	if m.itemExpiration > 0 {
+		var l = 0
+		for k := range m.data {
+			if m.itemTime.check(k) == true {
+				l++
+			}
+		}
+		return l
+	}
+
 	return len(m.data)
+}
+
+// NewExpiration Return a new Map with a given default expiration duration and cleanup interval
+func NewExpiration(expiration, cleanupInterval time.Duration) *Map {
+	var m = &Map{itemExpiration: expiration}
+	m.isMake.Store(true)
+	m.New()
+
+	newJanitor(m, cleanupInterval)
+	runtime.SetFinalizer(m, stopJanitor)
+
+	return m
 }
